@@ -168,6 +168,9 @@ CtMainWin::CtMainWin(bool                            no_gui,
         if (_pCtConfig->systrayOn) {
             _pGtkStatusIcon->set_visible(true);
         }
+        else {
+            _pGtkStatusIcon->set_visible(false);
+        }
     }
 }
 
