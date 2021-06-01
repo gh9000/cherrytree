@@ -34,7 +34,7 @@ CtMainWin::CtMainWin(bool                            no_gui,
                      Glib::RefPtr<Gtk::CssProvider>  rGtkCssProvider,
                      Gsv::LanguageManager*           pGsvLanguageManager,
                      Gsv::StyleSchemeManager*        pGsvStyleSchemeManager,
-                     Gtk::StatusIcon*                pGtkStatusIcon)
+                     CtStatusIcon*                   pCtStatusIcon)
  : Gtk::ApplicationWindow{}
  , _no_gui{no_gui}
  , _pCtConfig{pCtConfig}
@@ -44,7 +44,7 @@ CtMainWin::CtMainWin(bool                            no_gui,
  , _rGtkCssProvider{rGtkCssProvider}
  , _pGsvLanguageManager{pGsvLanguageManager}
  , _pGsvStyleSchemeManager{pGsvStyleSchemeManager}
- , _pGtkStatusIcon{pGtkStatusIcon}
+ , _pCtStatusIcon{pCtStatusIcon}
  , _ctTextview{this}
  , _ctStateMachine{this}
 {
@@ -164,9 +164,9 @@ CtMainWin::CtMainWin(bool                            no_gui,
         _ctTextview.signal_size_allocate().connect(sigc::mem_fun(*this, &CtMainWin::_on_textview_size_allocate));
         signal_configure_event().connect(sigc::mem_fun(*this, &CtMainWin::_on_window_configure_event), false);
 
-        // show status icon if it's needed and also check if systray exists
+        // show status icon if needed
         if (_pCtConfig->systrayOn) {
-            _pGtkStatusIcon->set_visible(true);
+            get_status_icon()->set_visible(true);
         }
         else {
             _pGtkStatusIcon->set_visible(false);
@@ -488,14 +488,14 @@ void CtMainWin::menu_set_items_recent_documents()
     sigc::slot<void, const std::string&> recent_doc_open_action = [&](const std::string& filepath){
         if (Glib::file_test(filepath, Glib::FILE_TEST_IS_REGULAR)) {
             if (file_open(filepath, "")) {
-                _pCtConfig->recentDocsFilepaths.move_or_push_front(Glib::canonicalize_filename(filepath));
+                _pCtConfig->recentDocsFilepaths.move_or_push_front(fs_canonicalize_filename(filepath));
                 menu_set_items_recent_documents();
             }
         }
         else {
             g_autofree gchar* title = g_strdup_printf(_("The Document %s was Not Found"), filepath.c_str());
             CtDialogs::error_dialog(Glib::ustring{title}, *this);
-            _pCtConfig->recentDocsFilepaths.move_or_push_back(Glib::canonicalize_filename(filepath));
+            _pCtConfig->recentDocsFilepaths.move_or_push_back(fs_canonicalize_filename(filepath));
             menu_set_items_recent_documents();
         }
     };
